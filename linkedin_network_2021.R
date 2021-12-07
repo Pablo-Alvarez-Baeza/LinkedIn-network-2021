@@ -30,19 +30,22 @@ df |>
             position = position_beeswarm(cex = 5) ,
             size = 2,
             color = "black",
-            family = "Lato") +
+            family = "Fuzzy Bubbles") +
   coord_flip() +
   scale_y_date(date_breaks = "1 month",
                date_labels = "%b") +
   labs(x = NULL,
        y = NULL) +
   scale_color_manual(values = c(
-    "w" = "#a6cee3",
-    "ld" = "#1f78b4",
-    "dv" = "#b2df8a",
+    "w" = "#7e5000",
+    "ld" = "#449eff",
+    "dv" = "#fb3753",
     "other" = "#BBBBBB"
+  ),
+  labels = c(
+    "Work", "L&D", "Data Viz", "Other"
   )) +
-  scale_size_manual(values = c(2, 4),
+  scale_size_manual(values = c(2, 3.5),
                     guide = 'none') +
   theme(
     plot.background = element_rect(fill = "grey98", color = "grey98"),
@@ -54,5 +57,4 @@ df |>
     axis.text.x = element_text(
       family = "Lato",
     )
-    ) 
-
+    )
