@@ -1,5 +1,9 @@
 library(pacman)
-p_load(tidyverse, janitor, lubridate, ggbeeswarm)
+p_load(tidyverse, janitor, lubridate, ggbeeswarm, ggtext, showtext, sysfonts)
+
+font_add("Fuzzy Bubbles", regular = "~~/Downloads/FuzzyBubbles-Bold.ttf")
+showtext_auto()
+
 
 raw_data <- read_csv("result.csv")
 
@@ -12,12 +16,20 @@ df <- raw_data |>
 
 df |> glimpse()
 
+
+
 df |>
-  group_by(month) |> 
-  mutate(value = rnorm(n()),
-         factor_n = factor(1)) |> 
-  ggplot(aes(factor_n, connection_since, color = network)) +
-  geom_beeswarm(aes(size = connection), priority = "random", cex = 2) +
+  mutate(label_network = if_else(connection == 1, "", first_name),
+         connection = factor(connection)) |> 
+  ggplot(aes(1, connection_since, color = network, size = connection)) +
+  geom_beeswarm(alpha = .5,
+                cex = 5) +
+  scale_size_manual(values = c(1, 4)) +
+  geom_text(aes(label = label_network),
+            position=position_beeswarm(cex = 5) ,
+            size = 2,
+            color = "black",
+            family="Fuzzy Bubbles") +
   coord_flip() +
   theme_minimal() +
   scale_color_manual(values = c(
@@ -32,35 +44,4 @@ df |>
     axis.text.y = element_blank()
   ) +
   labs(x = NULL,
-       y = NULL) 
-
-
-
-           
-
-df |>
-  group_by(month) |> 
-  mutate(value = rnorm(n()),
-         factor_n = factor(1),
-         size_network = case_when(connection == 1 ~ 1,
-                                  connection == 2 ~ 1)) |> 
-  ggplot(aes(value, connection_since, color = network)) +
-  geom_beeswarm(groupOnX = FALSE) +
-  coord_flip() +
-  theme_minimal() +
-  scale_color_manual(values = c(
-    "w" = "grey25",
-    "ld" = "blue",
-    "dv" = "purple",
-    "other" = "grey85"
-  )) +
-  theme(
-    panel.grid = element_blank(),
-    legend.position = "none",
-    axis.text.y = element_blank()
-  ) +
-  labs(x = NULL,
-       y = NULL) 
-
-
-         
+       y = NULL)
