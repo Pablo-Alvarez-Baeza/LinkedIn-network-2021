@@ -112,3 +112,47 @@ ggplot() +
 
 # Saving plot
 ggsave('plot.jpg', width = 10, height = 10, dpi = 300)
+
+
+# Text plot ---------------------------------------------------------------
+
+
+raw_data |> 
+  clean_names() |> 
+  select(first_name, month, network) |>
+  group_by(month) |> 
+  arrange(month, desc(first_name)) |> 
+  mutate(rank = row_number()) |> 
+  ggplot(aes(month, rank, label = first_name, color = network)) +
+  geom_text(size = 2,
+            hjust = 0,
+            family = "Lato",
+            fontface = "bold")  +
+  scale_color_manual(values = c(
+    "w" = "#7e5000",
+    "ld" = "#449eff",
+    "dv" = "#fb3753",
+    "other" = "#BBBBBB")
+    ) +
+  coord_cartesian(ylim = c(0, 40),
+                  clip = "off") +
+  labs(x = NULL,
+       y = NULL,
+       subtitle = "<span style='color:#b14cda'>1980s</span> | <span style='color:#44909c'>1990s</span> | <span style='color:#2045f6'>2000s</span> | <span style='color:#ce302b'>2010s</span>"
+       ) +
+  theme(
+    panel.grid = element_blank(),
+    plot.background = element_rect(fill = "white", color = "white"),
+    panel.background = element_rect(fill = "white", color = "white"),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "none",
+    plot.subtitle = element_markdown(
+      color = "grey50",
+      size = 8,
+      lineheight = 1.35,
+      hjust = 0,
+      margin = margin(t = 5))
+    )
+ 
