@@ -80,7 +80,7 @@ df <- df |>
   select(first_name, connection, network) |> 
   # Set size for circles
   mutate(connection = case_when(connection == 2 ~ 12,
-                                TRUE ~ connection))
+                                TRUE ~ connection)) |> 
 # Arrange connection to have bigger circles inside the smaller ones
   arrange(desc(connection), first_name)
 
