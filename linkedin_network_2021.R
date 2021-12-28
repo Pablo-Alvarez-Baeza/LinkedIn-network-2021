@@ -1,158 +1,72 @@
 # Load packages -----------------------------------------------------------
-
-
 library(pacman)
 p_load(tidyverse, janitor, lubridate, ggbeeswarm, ggtext, showtext, sysfonts, packcircles)
 
 font_add_google("Lato")
-font_add("Lato", regular = "~~/Downloads/Lato-Bold.ttf")
 showtext_auto()
 
 # Set theme
-theme_set(theme_minimal(base_family = "Lato"))
+theme_set(theme_void(base_family = "Lato"))
 
 
 # Load data ---------------------------------------------------------------
-
-
 raw_data <- read_csv("result.csv")
-
-df <- raw_data |>
-  clean_names() |> 
-  mutate(connection_since = as.Date(connection_since, "%d/%m/%y"),
-         network = factor(network),
-         connection = factor(connection)) |> 
-  as.data.frame()
-
-df |> glimpse()
-
-
-# Beeswarm plot -----------------------------------------------------------
-
-
-df |>
-  mutate(label_network = if_else(connection == 1, "", first_name)) |> 
-  ggplot(aes(1, connection_since, color = network, size = connection)) +
-  geom_beeswarm(alpha = .8,
-                cex = 5) +
-  geom_text(aes(label = label_network),
-            position = position_beeswarm(cex = 5) ,
-            size = 2,
-            color = "black",
-            family = "Lato") +
-  coord_flip() +
-  scale_y_date(date_breaks = "1 month",
-               date_labels = "%b") +
-  labs(x = NULL,
-       y = NULL) +
-  scale_color_manual(values = c(
-    "w" = "#7e5000",
-    "ld" = "#449eff",
-    "dv" = "#fb3753",
-    "other" = "#BBBBBB"
-  ),
-  labels = c(
-    "Work", "L&D", "Data Viz", "Other"
-  )) +
-  scale_size_manual(values = c(2, 3.5),
-                    guide = 'none') +
-  theme(
-    plot.background = element_rect(fill = "grey98", color = "grey98"),
-    panel.background = element_rect(fill = "grey98", color = "grey98"),
-    legend.position = "top",
-    legend.justification = c(0, 1),
-    panel.grid = element_blank(),
-    axis.text.y = element_blank(),
-    axis.text.x = element_text(
-      family = "Lato",
-    )
-    )
-
-
-# Pack circle -------------------------------------------------------------
-
-
-df <- raw_data |>
-  clean_names() |> 
-  as.data.frame()
-
-df <- df |>
-  select(first_name, connection, network) |> 
-  # Set size for circles
-  mutate(connection = case_when(connection == 2 ~ 12,
-                                TRUE ~ connection)) |> 
-# Arrange connection to have bigger circles inside the smaller ones
-  arrange(desc(connection), first_name)
-
-# Generate the layout. sizetype can be area or radius, following your preference on what to be proportional to value.
-packing <- circleProgressiveLayout(df$connection, sizetype='area')
-# Radius for separating the circles
-packing$radius <- 0.90 * packing$radius
-data <- cbind(df, packing)
-dat.gg <- circleLayoutVertices(packing, npoints=50)
-
-# Final plot
-ggplot() + 
-  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=as.factor(id)), colour = "white") +
-  scale_fill_manual(values = rep("white", 232)) +
-  geom_text(data = filter(data, connection == 12),
-            aes(x, y, size = connection, label = first_name),
-            size = 5,
-            family = "Lato",
-            fontface = "bold") +
-  scale_size_continuous(range = c(1,4)) +
-  coord_equal() +
-  theme(plot.background = element_rect(fill = "black", color = "black"),
-        panel.background = element_rect(fill = "black", color = "black"),
-        panel.grid = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        plot.margin = unit(c(0,0,0,0), "null"),
-        legend.position = "none") 
-
-# Saving plot
-ggsave('plot.jpg', width = 10, height = 10, dpi = 300)
 
 
 # Text plot ---------------------------------------------------------------
-
-
-raw_data |> 
+df <- raw_data |> 
   clean_names() |> 
   select(first_name, month, network) |>
   group_by(month) |> 
   arrange(month, desc(first_name)) |> 
-  mutate(rank = row_number()) |> 
+  mutate(rank = row_number()) 
+  
+df |> 
+  group_by(month) |> 
+  slice_max(rank, n = 1)
+
+df |> 
   ggplot(aes(month, rank, label = first_name, color = network)) +
-  geom_text(size = 2,
+  geom_text(size = 3,
             hjust = 0,
             family = "Lato",
             fontface = "bold")  +
+  coord_cartesian(xlim = c(1, 12),
+                    ylim = c(1, 35),
+                    clip = "off") +
   scale_color_manual(values = c(
-    "w" = "#7e5000",
-    "ld" = "#449eff",
-    "dv" = "#fb3753",
-    "other" = "#BBBBBB")
+    "work" = "black",
+    "ld" = "#273BD4",
+    "dv" = "#D41159",
+    "other" = "grey60")
     ) +
-  coord_cartesian(ylim = c(0, 40),
-                  clip = "off") +
   labs(x = NULL,
        y = NULL,
-       subtitle = "<span style='color:#b14cda'>1980s</span> | <span style='color:#44909c'>1990s</span> | <span style='color:#2045f6'>2000s</span> | <span style='color:#ce302b'>2010s</span>"
-       ) +
+       title = "2021: My LinkedIn connections",
+       subtitle = "<span style='color:#273BD4'>L&D <span></span><span style='color:#D41159'> Data Viz </span><span style='color:black'> Work</span><span style='color:grey60'> Other</span>",
+       caption = "Visualization by Pablo Alvarez") +
   theme(
-    panel.grid = element_blank(),
     plot.background = element_rect(fill = "white", color = "white"),
     panel.background = element_rect(fill = "white", color = "white"),
-    axis.text = element_blank(),
-    axis.title = element_blank(),
-    axis.ticks = element_blank(),
-    legend.position = "none",
-    plot.subtitle = element_markdown(
-      color = "grey50",
-      size = 8,
-      lineheight = 1.35,
-      hjust = 0,
-      margin = margin(t = 5))
-    )
+    plot.margin = margin(20, 40, 20, 40),
+    plot.title = element_text(color = "black", 
+                              size = 30, 
+                              face = "bold",
+                              hjust = 0,
+                              margin = margin(t = 20)),
+    plot.subtitle = element_markdown(size = 15, 
+                                     hjust = 0,
+                                     margin = margin(t = 10,
+                                                     b = 80),
+                                     family = "Lato",
+                                     face = "bold"),
+    plot.caption = element_text(color = "black",
+                                size = 8,
+                                hjust = 0.5,
+                                margin = margin(t = 20, b = 20)),
+    legend.position = "none"
+  )
+
+ggsave("linkedin_connections_2021.png", width = 10, height = 10, units = "in", dpi = 320)
+
  
